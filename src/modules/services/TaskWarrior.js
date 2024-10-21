@@ -153,13 +153,15 @@ class TaskWarrior {
                 total_estimate += this.time.durationToMs(task.estimate);
             }
         }
-        const text = `Total activetime: ${this.time.msToDuration(total_activetime)}\nTotal estimate: ${this.time.msToDuration(total_estimate)}`;
-        console.log(text);
+ 
         let result = {
             total_activetime,
             total_estimate
         }
-        if(total_activetime > 0) result.total_velocity = total_estimate / total_activetime; 
+        if(result.total_activetime > 0) result.total_velocity = result.total_estimate / result.total_activetime; 
+        
+        const text = `Total activetime: ${this.time.msToDuration(total_activetime)}\nTotal estimate: ${this.time.msToDuration(total_estimate)}${result.total_velocity ? `\nTotal velocity: ${result.total_velocity}` : ""}`;
+        console.log(text);
         return result;
     }
 }
