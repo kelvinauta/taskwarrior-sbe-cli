@@ -1,5 +1,5 @@
 import modules from "./imports.js";
-
+import { parseArgs } from "util";
 
 
 // Usage example:
@@ -14,13 +14,17 @@ class App {
         this.TaskWarrior = new modules.TaskWarrior();
         this.tasks = [];
     }
-    
-
     async query(query,override_options_query){
         this.tasks = await this.TaskWarrior.query(query, override_options_query);
         return this.tasks
     }
-    async simulation(){
+    async simulate(estimationMs=1000 * 60 * 60 * 1){
+        // validate
+        const rules = this.rules.add_prefix(".simulate");
+        rules(
+            ["EstimationMs must be a number", typeof estimationMs !== "number"],
+        );
+        // logic
         const velocities = this.TaskWarrior.get_velocities(this.tasks);
         const monteCarloSimulation = new modules.MonteCarloSimulation({
             simulatedSteps: 1000,
@@ -29,7 +33,7 @@ class App {
         }); 
         const simulation = monteCarloSimulation.run({
             velocities: velocities,
-            estimationMs: 1000 * 60 * 60 * 1 // 1 hour
+            estimationMs
         });
         return simulation;
     }
@@ -38,13 +42,61 @@ class App {
     }
 
 }
-let app = new App();
-await app.query("", {
-    report: "done_today", 
-    // activetime: false,
-    // estimate: true
-});
-const simulation = await app.simulation();
+
+class CLI {
+    constructor(){
+        this.rules = new modules.Rules({
+            prefix: "CLI",
+            strict: true,
+            concatPrefix: true
+        });
+        this.app = new App();
+        this.args = parseArgs({
+            allowPositionals: true,
+            args: Bun.argv,
+            strict: true,
+            options: {
+                query: { type: "string", default: "" },
+                report: { type: "string", default: "" },
+                mode: { type: "string", default: "simulate" }
+            }
+        });
+    }
+    _validate_args(){
+        const rules = this.rules.add_prefix(".validate_args");
+        const available_modes = ["simulate", "total_time"];
+        rules(
+            ["Mode must be a string", typeof this.args.values.mode !== "string"],
+            ["Mode must be a valid mode", !available_modes.includes(this.args.values.mode)],
+            ["Query must be a string", typeof this.args.values.query !== "string"], 
+            ["Report must be a string", typeof this.args.values.report !== "string"],
+        );
+        return true;
+    }
+    async run(){
+        // validate
+        this._validate_args();
+        const rules = this.rules.add_prefix(".run");
+        // logic
+        const params = [this.args.values.query];
+        if(this.args.values.report) params.push({report: this.args.values.report});
+        rules(
+            ["Params must be an array", !Array.isArray(params)],
+            ["Params must have 1 or 2 elements", params.length !== 1 && params.length !== 2],
+        );
+        await this.app.query(...params);
+        
+        if(this.args.values.mode === "simulate"){
+            return await this.app.simulate();
+        }
+        if(this.args.values.mode === "total_time"){
+            return await this.app.total_time();
+        }
+
+    }
 
 
-console.log(simulation);
+}
+
+const cli = new CLI();
+cli.run();

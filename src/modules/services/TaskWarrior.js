@@ -39,8 +39,15 @@ class TaskWarrior {
         let command = ["task"];
         if(options.report) command.push(await this.get_report_filters(options.report));
         if(query) command.push(query);
-        if(options.estimate) command.push("estimate.any:");
-        if(options.activetime) command.push("activetime.any:");
+        // if(options.estimate) command.push("estimate.any:");
+        // if(options.activetime) command.push("activetime.any:");
+        if(options.estimate || options.activetime){
+            command.push("(");
+            if(options.estimate) command.push("estimate.any:");
+            command.push("or");
+            if(options.activetime) command.push("activetime.any:");
+            command.push(")");
+        }
         command.push("export");
         command = this.cmd.normalizeCommand(command);
         console.log(command);
@@ -115,7 +122,7 @@ class TaskWarrior {
         return reportFilter;
     }
     get_velocities(tasks){
-        const rules = this.rules.add_prefix("get_velocities");
+        const rules = this.rules.add_prefix(".get_velocities");
         rules(
             ["Tasks is required", !tasks],
             ["Tasks must be an array", !Array.isArray(tasks)],
