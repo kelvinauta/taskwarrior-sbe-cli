@@ -3,7 +3,7 @@ import { Glob } from "bun";
 
 
 class ExportDirectory {
-    constructor(directory, exclude = 'index.js', extensions = '.js'){
+    constructor(directory, exclude = ['index.js'], extensions = '.js'){
         this.directory = directory;
         this.exclude = exclude;
         this.extensions = extensions;
@@ -15,12 +15,12 @@ class ExportDirectory {
     _validateInput(){
         if (!this.directory) throw new Error("Folder path is required");
         if (typeof this.directory !== "string") throw new Error("Folder path must be a string");
-        if (typeof this.exclude !== "string") throw new Error("Exclude must be a string");
+        if (!Array.isArray(this.exclude)) throw new Error("Exclude must be an array of strings");
+        if (this.exclude.some(item => typeof item !== "string")) throw new Error("All items in exclude must be strings");
         if (typeof this.extensions !== "string") throw new Error("Extensions must be a string");
-        if (this.exclude.length === 0) throw new Error("Exclude string cannot be empty");
+        if (this.exclude.length === 0) throw new Error("Exclude array cannot be empty");
         if (this.extensions.length === 0) throw new Error("Extensions string cannot be empty");
         if (!this.extensions.startsWith('.')) throw new Error("Extensions string must start with a dot");
-        console.info("Input validated");
     }
     async _scanDirectory(){
         let paths = [];
@@ -30,14 +30,13 @@ class ExportDirectory {
             onlyFiles: true,
             absolute: true
         })) {
-            if (!file.includes(this.exclude)) {
+            if (!this.exclude.some(excludeItem => file.includes(excludeItem))) {
                 paths.push(file);
             }
         }
         if(paths.length === 0) throw new Error("No files found in the directory");
         if(!Array.isArray(paths)) throw new Error("Result is not an array");
         this.paths = paths;
-        console.info("Directory scanned");
     }
     async _importDefaultModules(){
         for (const filePath of this.paths) {
@@ -59,6 +58,7 @@ class ExportDirectory {
                 this.exports[moduleName] = importedModule.default;
                 console.info(`Module ${filePath} imported successfully`);
             } catch (error) {
+                console.error(error);
                 console.error(`Error importing module ${filePath}: ${error.message}`);
             }
         }
