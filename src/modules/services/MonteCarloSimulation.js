@@ -71,6 +71,7 @@ class MonteCarloSimulation {
         });
 
         console.log(`\nProbability of the estimation being correct: ${estimationProbability.toFixed(2)}%`);
+        console.log(`\nTasks Length: ${velocities.length}`);
         return results;
     }
 

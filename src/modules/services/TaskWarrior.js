@@ -123,15 +123,16 @@ class TaskWarrior {
     }
     get_velocities(tasks){
         const rules = this.rules.add_prefix(".get_velocities");
+        const min_tasks_estimate_and_activetime = 10;
         rules(
             ["Tasks is required", !tasks],
             ["Tasks must be an array", !Array.isArray(tasks)],
             ["Tasks Length must be greater than 0", tasks.length === 0],
             ["Tasks must be an array of objects", tasks.some(task => typeof task !== 'object')],
-            ["All Tasks must have estimate", tasks.some(task => !task.estimate)],
-            ["All Tasks must have activetime", tasks.some(task => !task.activetime)]
+            [`Tasks must have at least ${min_tasks_estimate_and_activetime} tasks with estimate and activetime`, tasks.filter(task => task.estimate && task.activetime).length < min_tasks_estimate_and_activetime]
         );
-        return tasks.map(task => {
+        const tasks_with_estimate_and_activetime = tasks.filter(task => task.estimate && task.activetime);
+        return tasks_with_estimate_and_activetime.map(task => {
             return this.time.durationToMs(task.estimate) / this.time.durationToMs(task.activetime);
         });
     }
