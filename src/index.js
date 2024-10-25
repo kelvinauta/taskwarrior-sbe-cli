@@ -15,7 +15,7 @@ class App {
         this.tasks = await this.TaskWarrior.query(query, override_options_query);
         return this.tasks
     }
-    async simulate(estimationMs=1000 * 60 * 60 * 1){
+    async simulate(estimationMs=1000 * 60 * 60 * 2){
         // validate
         const rules = this.rules(".simulate");
         rules(

@@ -61,7 +61,6 @@ class TaskWarrior {
    
         let command = await this._build_command_query(query, options);
         const response = await this.cmd.runCommand(command);
-        console.log(response);
         rules(
             [`bash error: ${command.join(" ")}`, !response],
             [`No Tasks found`, response.trim().replace(/\n/g, "") == "[]"],
@@ -135,7 +134,7 @@ class TaskWarrior {
             ["Tasks must be an array", !Array.isArray(tasks)],
             ["Tasks Length must be greater than 0", tasks.length === 0],
             ["Tasks must be an array of objects", tasks.some(task => typeof task !== 'object')],
-            [`Tasks must have at least ${min_tasks_estimate_and_activetime} tasks with estimate and activetime`, tasks.filter(task => task.estimate && task.activetime).length < min_tasks_estimate_and_activetime]
+            [`Tasks must have at least ${min_tasks_estimate_and_activetime} tasks with estimate and activetime, found ${tasks.filter(task => task.estimate && task.activetime).length}`, tasks.filter(task => task.estimate && task.activetime).length < min_tasks_estimate_and_activetime]
         );
         const tasks_with_estimate_and_activetime = tasks.filter(task => task.estimate && task.activetime);
         return tasks_with_estimate_and_activetime.map(task => {
