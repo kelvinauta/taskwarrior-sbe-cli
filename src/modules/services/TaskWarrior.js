@@ -149,24 +149,40 @@ class TaskWarrior {
             ["Tasks must be an array", !Array.isArray(tasks)],
             ["Tasks must be an array of objects", tasks.some(task => typeof task !== 'object')]
         );
+        let raw_total_activetime = 0;
+        let raw_total_estimate = 0;
         let total_activetime = 0;
         let total_estimate = 0;
         for (const task of tasks) {
             if (task.activetime) {
-                total_activetime += this.time.durationToMs(task.activetime);
+                raw_total_activetime += this.time.durationToMs(task.activetime);
+                if(task.estimate) total_activetime += this.time.durationToMs(task.activetime);
             }
             if (task.estimate) {
-                total_estimate += this.time.durationToMs(task.estimate);
+                raw_total_estimate += this.time.durationToMs(task.estimate);
+                if(task.activetime) total_estimate += this.time.durationToMs(task.estimate);
             }
         }
  
         let result = {
+            raw_total_activetime,
+            raw_total_estimate,
             total_activetime,
             total_estimate
         }
-        if(result.total_activetime > 0) result.total_velocity = result.total_estimate / result.total_activetime; 
+        if(result.total_activetime > 0) {
+            const tasks_with_estimate_and_activetime = tasks.filter(task => task.estimate && task.activetime);
+            
+            result.total_velocity = result.total_estimate / result.total_activetime; 
+        }
         
-        const text = `Total activetime: ${this.time.msToDuration(total_activetime)}\nTotal estimate: ${this.time.msToDuration(total_estimate)}${result.total_velocity ? `\nTotal velocity: ${result.total_velocity}` : ""}`;
+        // const text = `Raw Total activetime: ${this.time.msToDuration(result.raw_total_activetime)}\nRaw Total estimate: ${this.time.msToDuration(result.raw_total_estimate)}${result.total_velocity ? `\nTotal velocity: ${result.total_velocity}` : ""}`;
+        let text = "";
+        if(result.raw_total_activetime > 0) text += `Raw Total activetime: ${this.time.msToDuration(result.raw_total_activetime)}\n`;
+        if(result.raw_total_estimate > 0) text += `Raw Total estimate: ${this.time.msToDuration(result.raw_total_estimate)}\n`;
+        if(result.total_activetime > 0) text += `\nTotal activetime: ${this.time.msToDuration(result.total_activetime)}\n`;   
+        if(result.total_estimate > 0) text += `Total estimate: ${this.time.msToDuration(result.total_estimate)}\n`;
+        if(result.total_velocity) text += `Total velocity: ${result.total_velocity}\n`;
         console.log(text);
         return result;
     }
