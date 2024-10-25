@@ -1,3 +1,4 @@
+import RULES from "rules_list";
 import modules from "./imports.js";
 import { parseArgs } from "util";
 
@@ -6,11 +7,7 @@ import { parseArgs } from "util";
 
 class App {
     constructor(){
-        this.rules = new modules.Rules({
-            prefix: "App",
-            strict: true,
-            concatPrefix: true
-        });
+        this.rules = new RULES("App").build();
         this.TaskWarrior = new modules.TaskWarrior();
         this.tasks = [];
     }
@@ -20,7 +17,7 @@ class App {
     }
     async simulate(estimationMs=1000 * 60 * 60 * 1){
         // validate
-        const rules = this.rules.add_prefix(".simulate");
+        const rules = this.rules(".simulate");
         rules(
             ["EstimationMs must be a number", typeof estimationMs !== "number"],
         );
@@ -45,11 +42,7 @@ class App {
 
 class CLI {
     constructor(){
-        this.rules = new modules.Rules({
-            prefix: "CLI",
-            strict: true,
-            concatPrefix: true
-        });
+        this.rules = new RULES("CLI").build();
         this.app = new App();
         this.args = parseArgs({
             allowPositionals: true,
@@ -63,11 +56,11 @@ class CLI {
         });
     }
     _validate_args(){
-        const rules = this.rules.add_prefix(".validate_args");
+        const rules = this.rules(".validate_args");
         const available_modes = ["simulate", "total_time"];
         rules(
             ["Mode must be a string", typeof this.args.values.mode !== "string"],
-            ["Mode must be a valid mode", !available_modes.includes(this.args.values.mode)],
+            [`Mode must be a valid mode: ${available_modes.join(", ")}`, !available_modes.includes(this.args.values.mode)],
             ["Query must be a string", typeof this.args.values.query !== "string"], 
             ["Report must be a string", typeof this.args.values.report !== "string"],
         );
@@ -76,7 +69,7 @@ class CLI {
     async run(){
         // validate
         this._validate_args();
-        const rules = this.rules.add_prefix(".run");
+        const rules = this.rules(".run");
         // logic
         const params = [this.args.values.query];
         if(this.args.values.report) params.push({report: this.args.values.report});

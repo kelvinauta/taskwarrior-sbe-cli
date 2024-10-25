@@ -1,4 +1,5 @@
 // Export all files in a directory
+import RULES from "rules_list";
 import { Glob } from "bun";
 
 
@@ -9,20 +10,25 @@ class ExportDirectory {
         this.extensions = extensions;
         this.paths = [];
         this.exports = {};
-
+        this.rules = new RULES("ExportDirectory").build();
 
     }
     _validateInput(){
-        if (!this.directory) throw new Error("Folder path is required");
-        if (typeof this.directory !== "string") throw new Error("Folder path must be a string");
-        if (!Array.isArray(this.exclude)) throw new Error("Exclude must be an array of strings");
-        if (this.exclude.some(item => typeof item !== "string")) throw new Error("All items in exclude must be strings");
-        if (typeof this.extensions !== "string") throw new Error("Extensions must be a string");
-        if (this.exclude.length === 0) throw new Error("Exclude array cannot be empty");
-        if (this.extensions.length === 0) throw new Error("Extensions string cannot be empty");
-        if (!this.extensions.startsWith('.')) throw new Error("Extensions string must start with a dot");
+        const rules = this.rules(".validateInput");
+        rules(
+            ["Folder path is required", !this.directory],
+            ["Folder path must be a string", typeof this.directory !== "string"],
+            ["Exclude must be an array of strings", !Array.isArray(this.exclude)],
+            ["Exclude all items must be strings", this.exclude.some(item => typeof item !== "string")],
+            ["Exclude array cannot be empty", this.exclude.length === 0],
+            ["Extensions must be a string", typeof this.extensions !== "string"],
+            ["Extensions string cannot be empty", this.extensions.length === 0],
+            ["Extensions string must start with a dot", !this.extensions.startsWith('.')],
+        );
+
     }
     async _scanDirectory(){
+        const rules = this.rules(".scanDirectory");
         let paths = [];
         const glob = new Glob(`**/*{${this.extensions}}`);
         for await (const file of glob.scan({
@@ -34,8 +40,10 @@ class ExportDirectory {
                 paths.push(file);
             }
         }
-        if(paths.length === 0) throw new Error("No files found in the directory");
-        if(!Array.isArray(paths)) throw new Error("Result is not an array");
+        rules(
+            ["No files found in the directory", paths.length === 0],
+            ["Result is not an array", !Array.isArray(paths)],
+        );
         this.paths = paths;
     }
     async _importDefaultModules(){

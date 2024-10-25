@@ -1,16 +1,13 @@
+import RULES from "rules_list";
 import modules from "../../imports.js";
 class Cmd {
     constructor() {
-        this.rules = new modules.Rules({
-            prefix: "Cmd",
-            strict: true,
-            concatPrefix: true
-        });
+        this.rules = new RULES("Cmd").build();
     }
     async runCommand(command){
 
         // validate
-        const rules = this.rules.add_prefix(".runCommand");
+        const rules = this.rules(".runCommand");
         rules(
             ["Command must be a Array", !Array.isArray(command)],
             ["Command must not be empty", command.length === 0],
@@ -27,7 +24,7 @@ class Cmd {
     }
     normalizeCommand(command){
         // validate
-        const rules = this.rules.add_prefix(".stringToCommand");
+        const rules = this.rules(".normalizeCommand");
         rules(
             ["Command must be a Array", !Array.isArray(command)],
             ["Command must not be empty", command.length === 0],

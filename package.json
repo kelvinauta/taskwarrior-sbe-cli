@@ -11,5 +11,8 @@
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "rules_list": "github:kelvinauta/rules_list_js#main"
   }
 }

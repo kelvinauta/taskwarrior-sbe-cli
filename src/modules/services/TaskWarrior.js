@@ -1,4 +1,5 @@
 // import Cmd from "../composers/Cmd";
+import RULES from "rules_list";
 import modules from "../../imports";
 class TaskWarrior {
     constructor() {
@@ -6,11 +7,7 @@ class TaskWarrior {
         // dependecy injection
         this.cmd = new modules.Cmd();
         this.time = new modules.Time();
-        this.rules = new modules.Rules({
-            prefix: "TaskWarrior",
-            strict: true,
-            concatPrefix: true
-        });
+        this.rules = new RULES("TaskWarrior").build();
 
         // default options
         this.options_query = {
@@ -25,7 +22,7 @@ class TaskWarrior {
         // override options
         options = {...this.options_query, ...options};
         // validate
-        const rules = this.rules.add_prefix(".build_command_query");
+        const rules = this.rules(".build_command_query");
         rules(
             ["Query must be a string", query ? typeof query !== "string" : false], // if query is provided, it must be a string
             ["Options must be an object", typeof options !== "object"],
@@ -55,7 +52,7 @@ class TaskWarrior {
     }
     async query(query, options) {
         // validate
-        const rules = this.rules.add_prefix(".query");
+        const rules = this.rules(".query");
         rules(
             ["Query must be a string", query ? typeof query !== "string" : false] // if query is provided, it must be a string
         );
@@ -64,17 +61,24 @@ class TaskWarrior {
    
         let command = await this._build_command_query(query, options);
         const response = await this.cmd.runCommand(command);
+        console.log(response);
+        rules(
+            [`bash error: ${command.join(" ")}`, !response],
+            [`No Tasks found`, response.trim().replace(/\n/g, "") == "[]"],
+        )
         try {
             const tasks = JSON.parse(response); //TODO: handle error
             return tasks;
         } catch (error) {
-            console.error(error);
-            throw new Error("Error in TaskWarrior.query");
+            rules(
+                ["Parsing JSON tasks error", true],
+                [error.message, true]
+            )
         }
     }
     async get_report_filters(report){
         // validate
-        const rules = this.rules.add_prefix("get_report_filters");
+        const rules = this.rules(".get_report_filters");
         rules(
             ["Report is required", !report],
             ["Report must be a string", typeof report !== "string"]
@@ -97,7 +101,9 @@ class TaskWarrior {
         // --------------- -----
         // No matching configuration variables.
         // ```
-        if(reportFilter.includes("No matching configuration variables.")) throw new Error(`Report ${report} not found`);
+        rules(
+            ["Report not found", reportFilter.includes("No matching configuration variables.")]
+        );
         
         // split the reportFilter into lines
         reportFilter = reportFilter.split("\n");
@@ -122,7 +128,7 @@ class TaskWarrior {
         return reportFilter;
     }
     get_velocities(tasks){
-        const rules = this.rules.add_prefix(".get_velocities");
+        const rules = this.rules(".get_velocities");
         const min_tasks_estimate_and_activetime = 10;
         rules(
             ["Tasks is required", !tasks],
@@ -137,7 +143,7 @@ class TaskWarrior {
         });
     }
     total_time(tasks){
-        const rules = this.rules.add_prefix(".total_time");
+        const rules = this.rules(".total_time");
         
         rules(
             ["Tasks is required", !tasks],

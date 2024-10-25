@@ -1,3 +1,4 @@
+import RULES from "rules_list";
 import modules from "../../imports";
 class MonteCarloSimulation {
     constructor({
@@ -8,12 +9,8 @@ class MonteCarloSimulation {
     }) {
         
         // validate
-        this.rules = new modules.Rules({
-            prefix: "MonteCarloSimulation",
-            strict: true,
-            concatPrefix: true
-        });
-        const rules = this.rules.add_prefix(".constructor");
+        this.rules = new RULES("MonteCarloSimulation").build();
+        const rules = this.rules(".constructor");
         rules(
             ["SimulatedSteps must be a number", typeof simulatedSteps !== "number"],
             ["IntervalMinutes must be a number", typeof intervalMinutes !== "number"],
@@ -32,7 +29,7 @@ class MonteCarloSimulation {
     run({velocities, estimationMs}) { 
 
         // validate
-        const rules = this.rules.add_prefix(".run");
+        const rules = this.rules(".run");
         rules(
             ["Velocities is required", !velocities],
             ["Velocities must be an array", !Array.isArray(velocities)],

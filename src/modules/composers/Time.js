@@ -1,13 +1,19 @@
+import RULES from "rules_list";
+
 class Time {
-    constructor(){}
+    constructor(){
+        this.rules = new RULES("Time").build();
+    }
     durationToMs(duration){
         // validate
-
+        const rules = this.rules(".durationToMs");
         // example duration: PT1H
-        if(!duration) throw new Error("No duration was entered");
-        if(typeof duration !== "string") throw new Error("duration must be a string");
-        if(duration.length === 0) throw new Error("duration cannot be an empty string");
-        if(duration.trim() === "") throw new Error("duration cannot be only whitespace");
+        rules(
+            ["No duration was entered", !duration],
+            ["duration must be a string", typeof duration !== "string"],
+            ["duration cannot be an empty string", duration.length === 0],
+            ["duration cannot be only whitespace", duration.trim() === ""],
+        );
 
         // logic
         const regex = /P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/;
@@ -27,8 +33,10 @@ class Time {
         );
 
         // validate output
-        if(typeof result !== "number") throw new Error("Invalid result of durationToMs");
-        if(result < 0) throw new Error("Invalid result of durationToMs");
+        rules(
+            ["Invalid result of durationToMs", typeof result !== "number"],
+            ["Invalid result of durationToMs", result < 0],
+        );  
 
         // return
         return result;
