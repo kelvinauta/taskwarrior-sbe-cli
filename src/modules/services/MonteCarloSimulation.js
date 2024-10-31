@@ -1,5 +1,5 @@
 import RULES from "rules_list";
-import modules from "../../imports";
+import modules from "../../imports"
 class MonteCarloSimulation {
     constructor({
        

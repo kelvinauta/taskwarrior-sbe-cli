@@ -1,6 +1,6 @@
 // import Cmd from "../composers/Cmd";
 import RULES from "rules_list";
-import modules from "../../imports";
+import modules from "../../imports"
 class TaskWarrior {
     constructor() {
 

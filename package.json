@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "bun --hot run src/index.js",
-    "start": "bun run src/index.js"
+    "start": "bun run src/index.js",
+    "build": "bun build --compile --minify --sourcemap ./src/index.js --outfile .build/tw"
   },
   "devDependencies": {
     "@types/bun": "latest"

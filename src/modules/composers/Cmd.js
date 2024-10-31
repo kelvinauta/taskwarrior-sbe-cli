@@ -1,5 +1,4 @@
 import RULES from "rules_list";
-import modules from "../../imports.js";
 class Cmd {
     constructor() {
         this.rules = new RULES("Cmd").build();

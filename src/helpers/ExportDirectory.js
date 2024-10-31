@@ -49,25 +49,36 @@ class ExportDirectory {
     async _importDefaultModules(){
         for (const filePath of this.paths) {
             try {
-                const importedModule = await import(filePath);
-                const exportedProperties = Object.keys(importedModule);
-               
+                // Importar el módulo de forma dinámica y esperar a que se resuelva
+                const module = await import(filePath);
                 
-                if (exportedProperties.length === 0) 
+                // Verificar si el módulo tiene una exportación por defecto
+                if (!module || !('default' in module)) {
+                    console.warn(`Module ${filePath} has no default export`);
                     continue;
-                if (exportedProperties.length !== 1)
-                    continue;
-                if (exportedProperties[0] !== 'default')
-                    continue;
-                
-                const moduleName = importedModule.default.name || importedModule.default.constructor.name || filePath.split('/').pop().split('.').shift();
-                if(moduleName.length === 0) continue;
+                }
 
-                this.exports[moduleName] = importedModule.default;
-                console.info(`Module ${filePath} imported successfully`);
+                const defaultExport = module.default;
+                if (!defaultExport) {
+                    console.warn(`Module ${filePath} default export is null/undefined`);
+                    continue;
+                }
+
+                // Obtener el nombre del módulo
+                const moduleName = defaultExport.name || 
+                                 defaultExport.constructor?.name || 
+                                 filePath.split('/').pop().split('.').shift();
+
+                if (!moduleName || moduleName.length === 0) {
+                    console.warn(`Could not determine module name for ${filePath}`);
+                    continue;
+                }
+
+                this.exports[moduleName] = defaultExport;
+                console.info(`Module ${filePath} imported successfully as ${moduleName}`);
             } catch (error) {
                 console.error(error);
-                console.error(`Error importing module ${filePath}: ${error.message}`);
+                console.error(`Error importing module ${filePath}:`, error.message);
             }
         }
         console.info("Modules imported");
